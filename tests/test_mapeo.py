@@ -343,12 +343,16 @@ class InventarioTests(unittest.TestCase):
 class Elemento {
  constructor(tag){this.tag=tag;this.children=[];this.style={};this.value='';this.checked=true;this.textContent='';this.attrs={};}
  append(...ns){this.children.push(...ns);} replaceChildren(...ns){this.children=[...ns];}
+ remove(){}
  setAttribute(k,v){this.attrs[k]=v;} addEventListener(){} setPointerCapture(){}
  getBoundingClientRect(){return {left:0,top:0,width:800,height:600};} click(){if(this.onclick)this.onclick({target:this});}
 }
 const elementos=new Map();
 global.document={head:new Elemento('head'),createElement:t=>new Elemento(t),createElementNS:(_,t)=>new Elemento(t),getElementById:id=>{if(!elementos.has(id)){const e=new Elemento(id);if(['tipo','periodo'].includes(id))e.value='all';elementos.set(id,e);}return elementos.get(id);}};
 global.alert=mensaje=>{throw Error(mensaje);};
+// Los recursos remotos quedan pendientes en este DOM sin red ni temporizadores.
+global.setTimeout=()=>0;global.clearTimeout=()=>{};
+global.location={protocol:'http:'};
 document.getElementById('datos').textContent=__JSON__;
 '''.replace('__JSON__',json.dumps(datos))
         comprobar=r'''

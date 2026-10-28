@@ -95,6 +95,7 @@ resultados/mapeo/
   exportaciones/
     tandil2018/
       mapa.html
+      mapa_datos.json
       inventario.json
       arboles.geojson
       camaras.geojson
@@ -134,13 +135,17 @@ al revisar una ejecución; situaciones ambiguas necesitan revisión.
 
 ## Usar el mapa
 
-Abrí `mapa.html` en el navegador. La vista local funciona sin conexión y muestra
-posiciones en metros, norte, incertidumbre y cámaras. Los puntos verdes tienen
+Desde el proyecto ejecutá `python -m mapeo.servidor_mapa` y abrí
+<http://127.0.0.1:8765/mapa.html>. Carga automáticamente el mapa de calles de
+OpenStreetMap; necesita conexión. Abrir el HTML como archivo local (`file://`)
+solo habilita la vista local, porque no envía el `Referer` exigido por el proveedor.
+Los puntos verdes tienen
 identidad confirmada, los naranjas son candidatos y los azules son cámaras.
 Los grupos y los individuos sin ubicación aparecen en la lista.
 
-Con **Cargar mapa de calles** se descargan Leaflet y las teselas de OpenStreetMap;
-esa vista necesita conexión. **Vista local** vuelve al plano sin mapa base.
+Si falla la conexión, el visor informa el problema y conserva el plano local.
+**Mapa de la ciudad** permite reintentar. **Vista local** muestra el plano sin
+mapa base, con posiciones en metros, norte, incertidumbre y cámaras.
 Podés filtrar por fecha y tipo, buscar un ID y abrir cada captura en Mapillary.
 Si coinciden dos puntos, seleccioná sus registros desde la lista: no se alteran
 las coordenadas para aparentar una separación.
@@ -148,6 +153,10 @@ las coordenadas para aparentar una separación.
 Seleccionar un árbol muestra sus observaciones y estado. El score de DINO no
 es un porcentaje de certeza de identidad. Los círculos de incertidumbre son
 estimaciones heurísticas de sensibilidad, no intervalos estadísticos calibrados.
+
+La plantilla del visor está separada de la lógica del inventario. Podés probar
+otra interfaz sobre `mapa_datos.json`, sin ejecutar DINO ni cambiar SQLite:
+ver [GUIA_VISUALIZACION.md](GUIA_VISUALIZACION.md).
 
 ## Anclas y revisión de identidad
 
