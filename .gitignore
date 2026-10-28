@@ -1,0 +1,39 @@
+# Entornos virtuales
+.venv/
+venv/
+proy/.venv/
+env/
+ENV/
+
+# Secretos y tokens
+.env*
+*.key
+*.pem
+
+# Archivos pesados / Datasets binarios
+annotated_dataset.zip
+annotated_dataset/images/
+*.zip
+*.tar.gz
+*.tar
+
+# Resultados pesados generados
+resultados/
+*.sqlite
+*.sqlite3
+
+# Python y caché
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor / SO
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.~lock.*
