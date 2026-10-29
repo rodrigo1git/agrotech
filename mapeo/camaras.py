@@ -81,6 +81,22 @@ class MarcoLocal:
         return [lon, lat]
 
 
+def orientacion_visual(meta):
+    """Rumbo de la fotografía para navegar el visor; no valida mediciones."""
+    for campo in ("computed_compass_angle", "compass_angle"):
+        valor = meta.get(campo)
+        if isinstance(valor, (int, float)) and math.isfinite(valor):
+            return {"bearing_deg": valor % 360, "source": campo}
+    try:
+        centro = rodrigues(meta["computed_rotation"]).T @ np.array([0., 0., 1.])
+        if np.all(np.isfinite(centro)) and math.hypot(centro[0], centro[1]) >= .05:
+            return {"bearing_deg": math.degrees(math.atan2(centro[0], centro[1])) % 360,
+                    "source": "computed_rotation"}
+    except (KeyError, TypeError, ValueError, IndexError):
+        pass
+    return None
+
+
 def rotacion_camara(meta, config):
     heading = meta.get("computed_compass_angle")
     if heading is None:

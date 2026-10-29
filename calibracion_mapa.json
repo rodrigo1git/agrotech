@@ -1,0 +1,9 @@
+{
+  "schema_version": 3,
+  "survey_id": "tandil2018",
+  "offset_east_m": 14.70141006077704,
+  "offset_north_m": -3.409889583063375,
+  "rotation_deg": 4.5,
+  "pivot_camera_id": "870050853581010",
+  "method": "rigid_rotation_translation"
+}

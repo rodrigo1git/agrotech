@@ -32,10 +32,17 @@ def cargar_config(ruta=None):
         raise ValueError("Revisá duplicate_iou y los mínimos de vistas")
     if any(int(config[k]) != config[k] for k in ("min_views_candidate", "min_views_confirm")) or config["min_parallax_deg"] >= 90:
         raise ValueError("Los mínimos de vistas deben ser enteros y el parallax menor a 90°")
+    if config["approx_min_range_m"] >= config["max_range_m"] or config["approx_min_ground_angle_deg"] >= 90:
+        raise ValueError("La distancia mínima aproximada debe ser menor al rango máximo y el ángulo de suelo menor a 90°")
+    for clave in ("tracking_min_score", "tracking_min_ncc", "tracking_min_color", "tracking_ambiguity_margin", "tracking_min_area_ratio"):
+        if config[clave] > 1:
+            raise ValueError(f"{clave} debe ser menor o igual a 1")
+    if int(config["tracking_frame_gap"]) != config["tracking_frame_gap"]:
+        raise ValueError("tracking_frame_gap debe ser un número entero")
     return config
 
 
-def registros_dataset(raiz):
+def registros_dataset(raiz, permitir_faltantes=False):
     raiz = Path(raiz).resolve()
     manifest = json.loads((raiz / "manifest.json").read_text(encoding="utf-8"))
     if not isinstance(manifest, dict) or manifest.get("source") != "mapillary" or not isinstance(manifest.get("images"), list):
@@ -49,8 +56,15 @@ def registros_dataset(raiz):
         candidatas = [raiz / "detecciones" / (meta["file_name"] + ".json"), raiz / "detecciones" / f"{meta['id']}.json"]
         ruta = next((r for r in candidatas if r.is_file()), None)
         if ruta is None:
+            if permitir_faltantes:
+                continue
             raise ValueError(f"Falta detección de {meta['id']}; ejecutá DINO o usá --inferir")
-        registro = json.loads(ruta.read_text(encoding="utf-8"))
+        try:
+            registro = json.loads(ruta.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            if permitir_faltantes:
+                continue
+            raise
         if str(registro.get("mapillary", meta).get("id")) != str(meta["id"]):
             raise ValueError("El ID del resultado no corresponde a su manifest")
         registro["mapillary"] = {**meta, **registro.get("mapillary", {})}
@@ -78,9 +92,15 @@ def main():
     parser.add_argument("--correcciones", type=Path, help="JSON con una lista actions de revisiones justificadas")
     parser.add_argument("--deshacer", help="ID del último evento reversible; falla si hubo cambios posteriores")
     parser.add_argument("--export-only", action="store_true", help="Exportar el estado persistido sin reconciliar")
+    limites = parser.add_mutually_exclusive_group()
+    limites.add_argument("--max-lateral-distance", type=float, metavar="METROS",
+                         help="Límite lateral de posiciones aproximadas en esta exportación; por defecto 6 m.")
+    limites.add_argument("--no-lateral-limit", action="store_true", help="Exportar aproximaciones sin límite lateral.")
     parser.add_argument("--demo", action="store_true", help="Crear y procesar una escena sintética de dos árboles próximos")
     parser.add_argument("--validacion", type=Path, help="Referencia manual para evaluar identidad y ubicación")
     args = parser.parse_args()
+    if args.max_lateral_distance is not None and (not math.isfinite(args.max_lateral_distance) or args.max_lateral_distance <= 0):
+        parser.error("--max-lateral-distance debe ser un número positivo finito")
     if args.demo and args.relevamiento == "principal":
         args.relevamiento = "demo"
     if args.demo and args.inferir:
@@ -120,6 +140,12 @@ def main():
                     survey["config"] = config
                     almacen.guardar_survey(survey)
                     almacen.evento(survey["id"], "configuration", {"before": anterior, "after": config})
+        # Ajustes de visualización de esta ejecución, sin cambiar la configuración
+        # persistida, incluidos los relevamientos creados antes de este límite.
+        if args.max_lateral_distance is not None:
+            config = {**config, "allow_lateral_limit": True, "approx_max_lateral_distance_m": args.max_lateral_distance}
+        elif args.no_lateral_limit:
+            config = {**config, "allow_lateral_limit": False}
         datasets = list(args.dataset or [])
         if args.demo:
             from mapeo.demo import crear_demo

@@ -85,6 +85,14 @@ def reconciliar(almacen, survey, config, record_event=True):
             cambio_grupos = True
     if cambio_grupos:
         propuestas, ambiguos = construir_hipotesis(obs, config)
+    informe_seguimiento = {"enabled": False, "merges": 0}
+    if config.get("allow_visual_tracking", False):
+        from .seguimiento_visual import crear_enlaces, fusionar_propuestas
+        ajustes_camara = almacen.overrides(survey["id"])
+        capturas_efectivas = {iid: {**meta, **ajustes_camara.get(("camera", iid), {})} for iid, meta in capturas.items()}
+        enlaces = crear_enlaces(obs, capturas_efectivas, config)
+        propuestas, informe_seguimiento = fusionar_propuestas(propuestas, obs, enlaces, anteriores, config)
+        informe_seguimiento["enabled"] = True
     antiguos = sorted([a for a in anteriores["trees"] if a.get("active", True)], key=lambda a: a["id"])
     linajes = {o["id"]: set(o.get("previous_observation_ids", [])) for o in obs}
     propietarios = {}
@@ -115,6 +123,7 @@ def reconciliar(almacen, survey, config, record_event=True):
             fila.append(1 - comun / max(len(ids), len(viejo["observation_ids"])) if comun else 1000.)
         costos.append(fila)
     elecciones = asignacion(costos, 1.)
+    reservadas = {antiguos[i]["id"] for i in elecciones if i is not None}
     resultado, usados, ops = [], set(), []
     anteriores_por_id = {a["id"]: a for a in anteriores["trees"]}
     for nueva, indice in zip(propuestas, elecciones):
@@ -122,6 +131,10 @@ def reconciliar(almacen, survey, config, record_event=True):
         if vieja is None and nueva["reviewed_owner"]:
             continue
         clave = vieja["id"] if vieja else identificador("tree", survey["id"], min(nueva["observation_ids"]))
+        # Al separar una asociación automática, su ID puede haber quedado
+        # asignado a otra de las partes. La parte nueva necesita un ID propio.
+        if vieja is None and clave in reservadas | usados:
+            clave = identificador("tree", survey["id"], "reassociated", *sorted(nueva["observation_ids"]))
         # Una decisión manual de rechazo/división nunca se reactiva por la inferencia.
         bloqueada = anteriores_por_id.get(clave)
         if vieja is None and bloqueada and bloqueada.get("origin") == "review" and not bloqueada.get("active", True):
@@ -201,9 +214,9 @@ def reconciliar(almacen, survey, config, record_event=True):
         if previo["id"] not in claves:
             grupos.append(dict(previo) if previo.get("origin") == "review" else {**previo, "active": False})
     estado = {"trees": resultado, "groups": grupos, "overrides": anteriores["overrides"], "observations": obs}
-    evento = almacen.guardar_estado(survey["id"], estado, detalle={"operations": ops}, journal=record_event)
+    evento = almacen.guardar_estado(survey["id"], estado, detalle={"operations": ops, "visual_tracking": informe_seguimiento}, journal=record_event)
     return {"event_id": evento, "frame": marco, "captures": capturas, "observations": obs,
-            "state": almacen.estado(survey["id"])}
+            "state": almacen.estado(survey["id"]), "tracking_report": informe_seguimiento}
 
 
 def contadores(estado, observaciones):

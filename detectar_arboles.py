@@ -80,6 +80,22 @@ def guardar_resultado(imagen, resultado, ruta, destino, configuracion, metadatos
     return len(detecciones)
 
 
+def resultado_reutilizable(destino, configuracion, width, height, metadatos):
+    """Reanudar solo si coinciden imagen, modelo, parámetros y metadatos."""
+    archivo = destino.with_name(destino.name + ".json")
+    if not archivo.is_file() or not destino.with_name(destino.name + ".png").is_file():
+        return None
+    try:
+        registro = json.loads(archivo.read_text(encoding="utf-8"))
+        if any(registro.get(k) != v for k, v in configuracion.items()):
+            return None
+        if (registro.get("width"), registro.get("height")) != (width, height) or registro.get("mapillary") != metadatos:
+            return None
+        return registro if isinstance(registro.get("detections"), list) else None
+    except (OSError, ValueError):
+        return None
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("entrada", type=Path, help="Imagen o carpeta (incluye subcarpetas)")
@@ -90,6 +106,7 @@ def main():
     parser.add_argument("--text-threshold", type=float, default=0.25, help="Umbral de texto")
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     parser.add_argument("--dry-run", action="store_true", help="Listar entradas sin cargar el modelo")
+    parser.add_argument("--skip-existing", action="store_true", help="Reutilizar resultados válidos de las mismas imágenes y configuración")
     parser.add_argument("--manifest", type=Path, help="Manifest de Mapillary; selecciona sus imágenes y conserva metadatos")
     args = parser.parse_args()
     if args.limit < 0:
@@ -178,20 +195,21 @@ def main():
         try:
             with Image.open(ruta) as original:
                 imagen = original.convert("RGB")
-            inputs = processor(images=imagen, text=args.prompt, return_tensors="pt").to(device)
-            with torch.inference_mode():
-                outputs = model(**inputs)
-            resultado = processor.post_process_grounded_object_detection(
-                outputs,
-                inputs.input_ids,
-                threshold=args.threshold,
-                text_threshold=args.text_threshold,
-                target_sizes=[(imagen.height, imagen.width)],
-            )[0]
             destino = args.output / ruta.relative_to(raiz)
             metadata_imagen = metadatos.get(ruta)
             config_imagen = {**configuracion, "image_sha256": hashlib.sha256(ruta.read_bytes()).hexdigest()}
-            cantidad = guardar_resultado(imagen, resultado, ruta, destino, config_imagen, metadata_imagen)
+            previo = resultado_reutilizable(destino, config_imagen, imagen.width, imagen.height, metadata_imagen) if args.skip_existing else None
+            if previo is not None:
+                cantidad = len(previo["detections"])
+            else:
+                inputs = processor(images=imagen, text=args.prompt, return_tensors="pt").to(device)
+                with torch.inference_mode():
+                    outputs = model(**inputs)
+                resultado = processor.post_process_grounded_object_detection(
+                    outputs, inputs.input_ids, threshold=args.threshold,
+                    text_threshold=args.text_threshold, target_sizes=[(imagen.height, imagen.width)],
+                )[0]
+                cantidad = guardar_resultado(imagen, resultado, ruta, destino, config_imagen, metadata_imagen)
             if metadata_imagen is not None:
                 registro = json.loads(destino.with_name(destino.name + ".json").read_text(encoding="utf-8"))
                 for deteccion in registro["detections"]:

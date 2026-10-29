@@ -311,12 +311,20 @@ class InventarioTests(unittest.TestCase):
             for p in geo:self.assertLess(min(math.dist(marco.proyectar(*p),a['fit']['xy']) for a in activos),.02)
         finally:otro.close()
 
-    def test_exportacion_vacia_y_captura_unica_no_inventan_puntos(self):
+    def test_exportacion_vacia_y_captura_unica_etiquetan_aproximaciones(self):
         exportar(self.almacen,self.survey,self.config,self.raiz/'export')
         self.assertEqual(json.loads((self.raiz/'export/arboles.geojson').read_text())['features'],[])
         self.importar(registro_sintetico('1',CAMARAS[0],[PUNTOS[0]]))
+        estado_antes=self.almacen.estado('prueba')
         exportar(self.almacen,self.survey,self.config,self.raiz/'export')
-        self.assertEqual(json.loads((self.raiz/'export/arboles.geojson').read_text())['features'],[])
+        features=json.loads((self.raiz/'export/arboles.geojson').read_text())['features']
+        self.assertEqual(len(features),1)
+        self.assertTrue(features[0]['properties']['map_position']['is_approximate'])
+        self.assertIsNone(features[0]['properties']['fit'])
+        self.assertEqual(self.almacen.estado('prueba'),estado_antes)
+        self.assertEqual(self.cuenta()['arboles_confirmados'],0)
+        exportar(self.almacen,self.survey,{**self.config,'allow_approximate_positions':False},self.raiz/'estricto')
+        self.assertEqual(json.loads((self.raiz/'estricto/arboles.geojson').read_text())['features'],[])
         self.assertTrue((self.raiz/'export/mapa.html').exists())
         obs=json.loads((self.raiz/'export/observaciones.geojson').read_text())['features'][0]
         self.assertEqual(obs['geometry']['type'],'LineString')
@@ -332,6 +340,25 @@ class InventarioTests(unittest.TestCase):
         self.assertNotIn(razon,html)
         self.assertIn('\\u003c/script',html)
 
+    def test_cli_limite_lateral_exporta_sin_modificar_inventario(self):
+        self.importar(registro_sintetico('1',CAMARAS[0],PUNTOS,verified=False))
+        estado=self.almacen.estado('prueba')
+        generacion=self.almacen.db.execute('SELECT generation FROM surveys').fetchone()[0]
+        script=Path(__file__).resolve().parents[1]/'mapear_arboles.py'
+        comando=[sys.executable,'-B',str(script),'--output',str(self.raiz),'--relevamiento','prueba','--export-only']
+        for opciones in [['--max-lateral-distance','.1'],['--no-lateral-limit']]:
+            r=subprocess.run(comando+opciones,capture_output=True,text=True)
+            self.assertEqual(r.returncode,0,r.stderr)
+            datos=json.loads((self.raiz/'exportaciones/prueba/mapa_datos.json').read_text())
+            for f in datos['trees']:
+                p=f['properties']['map_position']
+                if opciones[0]=='--max-lateral-distance':
+                    self.assertTrue(p['lateral_constraint']['applied'])
+                    self.assertLessEqual(abs(p['lateral_constraint']['lateral_after_m']),.100001)
+                else:self.assertNotIn('lateral_constraint',p)
+            self.assertEqual(self.almacen.estado('prueba'),estado)
+            self.assertEqual(self.almacen.db.execute('SELECT generation FROM surveys').fetchone()[0],generacion)
+
     @unittest.skipUnless(shutil.which('node'),'Node no disponible para comprobar el JavaScript')
     def test_mapa_renderiza_filtra_y_prepara_revision_con_dom_simulado(self):
         self.escena()
@@ -341,14 +368,15 @@ class InventarioTests(unittest.TestCase):
         fuente=html.split('<script>')[1].split('</script>')[0]
         stub=r'''
 class Elemento {
- constructor(tag){this.tag=tag;this.children=[];this.style={};this.value='';this.checked=true;this.textContent='';this.attrs={};}
+ constructor(tag){this.tag=tag;this.children=[];this.style={};this.value='';this.checked=true;this.textContent='';this.attrs={};this.open=false;this.classList={toggle(){}};}
  append(...ns){this.children.push(...ns);} replaceChildren(...ns){this.children=[...ns];}
  remove(){}
+ replaceWith(n){elementos.set(this.id,n);} showModal(){this.open=true;} close(){this.open=false;}
  setAttribute(k,v){this.attrs[k]=v;} addEventListener(){} setPointerCapture(){}
  getBoundingClientRect(){return {left:0,top:0,width:800,height:600};} click(){if(this.onclick)this.onclick({target:this});}
 }
 const elementos=new Map();
-global.document={head:new Elemento('head'),createElement:t=>new Elemento(t),createElementNS:(_,t)=>new Elemento(t),getElementById:id=>{if(!elementos.has(id)){const e=new Elemento(id);if(['tipo','periodo'].includes(id))e.value='all';elementos.set(id,e);}return elementos.get(id);}};
+global.document={head:new Elemento('head'),createElement:t=>new Elemento(t),createElementNS:(_,t)=>new Elemento(t),getElementById:id=>{if(!elementos.has(id)){const e=new Elemento(id);e.id=id;if(['tipo','periodo'].includes(id))e.value='all';elementos.set(id,e);}return elementos.get(id);}};
 global.alert=mensaje=>{throw Error(mensaje);};
 // Los recursos remotos quedan pendientes en este DOM sin red ni temporizadores.
 global.setTimeout=()=>0;global.clearTimeout=()=>{};

@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "survey_id": "tandil2018",
+  "offset_east_m": 23,
+  "method": "horizontal_translation_preserve_latitude"
+}

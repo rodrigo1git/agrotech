@@ -3,46 +3,137 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Inventario de árboles</title>
 <style>
-*{box-sizing:border-box}body{display:flex;flex-direction:column;height:100vh;height:100dvh;margin:0;background:#f4f6f4;color:#153b2a;font:15px system-ui}header{flex-shrink:0;padding:18px 24px;background:white;border-bottom:1px solid #d5dfd7}h1{margin:0 0 8px;font-size:24px}.stats{display:flex;gap:16px;flex-wrap:wrap}.stats span{padding:7px 12px;background:#edf4ed;border-radius:8px}main{display:grid;grid-template-columns:minmax(0,1fr) 380px;flex:1;min-height:0}#panelMapa{position:relative;overflow:hidden;background:#eef2eb}#plano{width:100%;height:100%;touch-action:none}#geografico{position:absolute;inset:0;display:none}.estado-mapa{position:absolute;top:12px;left:55px;right:12px;z-index:1000;background:#fffffff0;padding:8px 12px;border-radius:5px;font-size:13px;pointer-events:none}aside{padding:16px;overflow:auto;background:white;border-left:1px solid #ddd}button,select,input,textarea{font:inherit;padding:7px;border:1px solid #bdcbbf;border-radius:5px}button{cursor:pointer;background:white;color:#164e35}button:hover{background:#e6f1e8}nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.lista{display:grid;gap:5px;margin-top:12px}.registro{text-align:left;font-size:13px;overflow-wrap:anywhere}.detalle{border-top:1px solid #ddd;margin-top:16px;padding-top:12px;overflow-wrap:anywhere}aside img{max-width:100%;height:auto;border-radius:5px}.note{font-size:12px;color:#53655b}.legend{z-index:1000;position:absolute;bottom:12px;left:12px;background:#fffffff0;padding:10px;border-radius:8px;font-size:12px;pointer-events:none}a{color:#175c3e}textarea{width:100%;min-height:60px;margin:8px 0}#pendientes{font-size:12px}#buscar{width:100%}.coords{font-family:monospace;font-size:12px}@media(max-width:800px){body{height:auto;min-height:100vh}main{grid-template-columns:1fr;flex:none;height:auto}#panelMapa{height:55vh}aside{height:70vh}.stats{gap:5px}header{flex-shrink:0;padding:12px}}
+*{box-sizing:border-box}body{display:flex;flex-direction:column;height:100vh;height:100dvh;margin:0;background:#f4f6f4;color:#153b2a;font:15px system-ui}header{flex-shrink:0;padding:18px 24px;background:white;border-bottom:1px solid #d5dfd7}h1{margin:0 0 8px;font-size:24px}.stats{display:flex;gap:16px;flex-wrap:wrap}.stats span{padding:7px 12px;background:#edf4ed;border-radius:8px}main{display:grid;grid-template-columns:minmax(0,1fr) 380px;flex:1;min-height:0}#panelMapa{position:relative;overflow:hidden;background:#eef2eb}#plano{width:100%;height:100%;touch-action:none}#geografico{position:absolute;inset:0;display:none}.estado-mapa{position:absolute;top:12px;left:55px;right:12px;z-index:1000;background:#fffffff0;padding:8px 12px;border-radius:5px;font-size:13px;pointer-events:none}aside{padding:16px;overflow:auto;background:white;border-left:1px solid #ddd}button,select,input,textarea{font:inherit;padding:7px;border:1px solid #bdcbbf;border-radius:5px}button{cursor:pointer;background:white;color:#164e35}button:hover{background:#e6f1e8}nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.lista{display:grid;gap:5px;margin-top:12px}.registro{text-align:left;font-size:13px;overflow-wrap:anywhere}.detalle{border-top:1px solid #ddd;margin-top:16px;padding-top:12px;overflow-wrap:anywhere}aside img{max-width:100%;height:auto;border-radius:5px}.note{font-size:12px;color:#53655b}.map-marker{background:transparent;border:0}.map-symbol{display:block;width:18px;height:18px;border:2px solid white;box-shadow:0 0 0 1px #243746}.map-symbol.group{transform:rotate(45deg)}.legend{z-index:1000;position:absolute;bottom:12px;left:12px;background:#fffffff0;padding:10px;border-radius:8px;font-size:12px;pointer-events:none}a{color:#175c3e}textarea{width:100%;min-height:60px;margin:8px 0}#pendientes{font-size:12px}#buscar{width:100%}.coords{font-family:monospace;font-size:12px}@media(max-width:800px){body{height:auto;min-height:100vh}main{grid-template-columns:1fr;flex:none;height:auto}#panelMapa{height:55vh}aside{height:70vh}.stats{gap:5px}header{flex-shrink:0;padding:12px}}
+</style>
+<style>
+#visorCamaras{width:min(1440px,96vw);height:94vh;height:94dvh;max-width:none;max-height:96dvh;padding:0;border:1px solid #405347;border-radius:14px;background:#0e1512;color:#eff6f0;overflow:hidden;box-shadow:0 24px 90px #0009}#visorCamaras::backdrop{background:#06140ed9}#visorCamaras[open]{display:flex;flex-direction:column}#visorCamaras h2{margin:0;font-size:18px;overflow-wrap:anywhere}.foto-cabecera,.foto-pie{padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#18251e}.foto-cabecera{border-bottom:1px solid #314238}.foto-cabecera>div{flex:1;min-width:0}.foto-cabecera p{margin:5px 0 0;font-size:13px;color:#b8cdbf}#visorCamaras button,#visorCamaras select{background:#263c2e;color:#f1f7f3;border-color:#506958}#visorCamaras button:hover{background:#365540}#visorCamaras button:disabled{opacity:.4;cursor:default}#visorCamaras button:focus-visible,#visorCamaras select:focus-visible{outline:3px solid #9ddbb4;outline-offset:2px}#fotoEscena{flex:1;min-height:0;min-width:0;display:flex;position:relative;overflow:auto;background:#080d0a}#fotoImagen{display:block;margin:auto;flex:none;object-fit:contain;max-width:100%;max-height:100%}#fotoEstado{position:absolute;left:16px;right:16px;top:16px;margin:0;padding:10px 14px;border-radius:8px;background:#18251ef0;color:#f2f7f3;z-index:1}#fotoContador{font-variant-numeric:tabular-nums;min-width:66px;text-align:center}#fotoDescripcion{flex:1;min-width:180px;font-size:12px;color:#c0d2c4;overflow-wrap:anywhere}#fotoRecorrido{max-width:100%}.foto-zoom{display:flex;gap:6px;align-items:center}#fotoZoomEstado{font-size:12px;min-width:55px;text-align:center}#visorCamaras a{color:#a8e3bc}.map-symbol.camera.selected{box-shadow:0 0 0 3px #ffdb68,0 0 0 5px #243746}.foto-miniatura{cursor:zoom-in}@media(max-width:650px){#visorCamaras{width:100vw;height:100dvh;max-height:100dvh;border:0;border-radius:0}.foto-cabecera,.foto-pie{padding:10px;gap:8px}.foto-cabecera h2{font-size:14px}#fotoRecorrido{width:100%}.foto-pie #fotoDescripcion{flex-basis:100%;order:1}.foto-cabecera p{font-size:12px}}
+</style>
+<style>#fotoImagen[hidden]{display:none}</style>
+<style>
+.foto-navegacion{display:flex;align-items:center;gap:16px;flex:1;min-width:280px}#fotoDirecciones{display:grid;grid-template-columns:repeat(3,minmax(90px,1fr));grid-template-rows:repeat(3,auto);gap:4px;margin:0}#fotoDirecciones button{font-size:12px;padding:6px;white-space:nowrap}#fotoAdelante{grid-column:2;grid-row:1}#fotoIzquierda{grid-column:1;grid-row:2}#fotoDerecha{grid-column:3;grid-row:2}#fotoAtras{grid-column:2;grid-row:3}#fotoDireccionEstado{max-width:230px;font-size:12px;color:#bed5c5;margin:0}#fotoOrden{font-size:12px}#fotoOrden>div{display:flex;gap:6px;margin-top:6px}@media(max-width:650px){.foto-navegacion{flex-basis:100%;gap:10px}#fotoDirecciones{grid-template-columns:repeat(3,minmax(80px,1fr))}#fotoDireccionEstado{font-size:11px}}
+</style>
+<style>
+main.sin-panel{grid-template-columns:minmax(0,1fr)}#panelLateral[hidden]{display:none}#alternarPanel{margin-left:auto}#visorArboles{width:min(1200px,96vw);height:92vh;height:92dvh;max-width:none;max-height:96dvh;padding:0;border:1px solid #405347;border-radius:14px;background:#0e1512;color:#eff6f0;overflow:hidden;box-shadow:0 24px 90px #0009}#visorArboles::backdrop{background:#06140ed9}#visorArboles[open]{display:flex;flex-direction:column}#visorArboles h2{margin:0;font-size:18px;overflow-wrap:anywhere}#visorArboles button{background:#263c2e;color:#f1f7f3;border-color:#506958}#visorArboles button:hover{background:#365540}#visorArboles button:disabled{opacity:.4;cursor:default}#visorArboles button:focus-visible{outline:3px solid #9ddbb4;outline-offset:2px}#arbolEscena{flex:1;min-height:0;min-width:0;display:flex;position:relative;overflow:auto;background:#080d0a}#arbolImagen{display:block;margin:auto;flex:none;object-fit:contain}#arbolImagen[hidden]{display:none}#arbolEstado{position:absolute;left:16px;right:16px;top:16px;margin:0;padding:10px 14px;border-radius:8px;background:#18251ef0;color:#f2f7f3}#arbolDescripcion{flex:1;min-width:180px;font-size:12px;color:#c0d2c4}#arbolContador{font-size:13px;font-variant-numeric:tabular-nums}@media(max-width:650px){#visorArboles{width:100vw;height:100dvh;max-height:100dvh;border:0;border-radius:0}#visorArboles h2{font-size:14px}}@media(max-width:800px){main.sin-panel #panelMapa{height:75vh}}
 </style>
 <header><h1>Inventario de árboles</h1><div id="stats" class="stats"></div><nav>
+<label id="selectorMapas" hidden>Relevamiento <select id="elegirRelevamiento"></select></label>
 <button id="mas">+</button><button id="menos">−</button><button id="encuadrar">Encuadrar</button>
 <button id="base">Mapa de la ciudad</button><button id="local">Vista local</button>
+<label><input type="checkbox" id="verAproximados" checked> Posiciones aproximadas</label>
 <label><input type="checkbox" id="verCamaras" checked> Cámaras</label>
 <label><input type="checkbox" id="verRayos"> Observaciones</label>
 <label><input type="checkbox" id="verIncertidumbre" checked> Incertidumbre</label>
+<button id="alternarPanel" aria-controls="panelLateral" aria-expanded="true">Ocultar panel derecho</button>
 </nav></header>
-<main><section id="panelMapa"><svg id="plano" aria-label="Mapa local de árboles"></svg><div id="geografico"></div>
+<p id="estadoProcesamiento" class="note" role="status" style="margin:6px 24px" hidden></p>
+<main id="contenidoMapa"><section id="panelMapa"><svg id="plano" aria-label="Mapa local de árboles"></svg><div id="geografico"></div>
 <div id="estadoMapa" class="estado-mapa" role="status" aria-live="polite">Cargando mapa de la ciudad…</div>
-<div class="legend">● Verde: identidad confirmada · naranja: candidato · rojo: revisar<br>◆ Azul: cámara · líneas: direcciones, no distancias medidas<br>Círculos: incertidumbre heurística, sin calibración estadística</div></section>
-<aside><div id="relevamiento"></div>
+<div class="legend"><b>Árboles: un color por identidad</b><br>
+Borde verde: confirmado · ámbar: candidato · rojo: revisar<br>
+■ Azul: cámara · ◆ Violeta: grupo<br>Borde discontinuo: ubicación aproximada<br>
+Líneas: observaciones · círculos tenues: incertidumbre heurística</div></section>
+<aside id="panelLateral" aria-label="Detalles y ajustes del relevamiento"><div id="relevamiento"></div>
+<details open><summary>Alineación del relevamiento</summary>
+<p class="note">Mueve juntos cámaras, árboles y líneas en cualquier dirección. Los valores son desplazamientos totales desde el original.</p>
+<label>Este/oeste (m) <input id="offsetEste" type="number" step="0.5" value="0" style="width:95px"></label>
+<label>Norte/sur (m) <input id="offsetNorte" type="number" step="0.5" value="0" style="width:95px"></label>
+<label>Paso (m) <input id="pasoOffset" type="number" step="0.1" min="0.1" value="1" style="width:70px"></label>
+<nav><button id="offsetNorteMas">↑ Norte</button><button id="offsetNorteMenos">↓ Sur</button><button id="offsetMenos">← Oeste</button><button id="offsetMas">Este →</button></nav>
+<nav><button id="aplicarOffset">Aplicar</button><button id="restaurarOffset">Restablecer original</button><button id="restaurarArchivo">Volver al ajuste del archivo</button></nav>
+<label>Rotación (°) <input id="rotacionGrados" type="number" step="0.5" value="0" style="width:80px"></label>
+<label>Paso de giro (°) <input id="pasoGiro" type="number" step="0.1" min="0.1" value="0.5" style="width:70px"></label>
+<label>Centro del giro <select id="pivoteRotacion"></select></label>
+<nav><button id="rotarIzquierda">↶ Antihorario</button><button id="rotarDerecha">↷ Horario</button><button id="sinGiro">Sin giro</button><button id="pivoteSeleccionado">Usar cámara seleccionada</button></nav>
+<p class="note">El giro conserva las distancias y mantiene fija la cámara de referencia en su posición corregida. Ángulo positivo: horario.</p>
+<label>Centrado <select id="modoCentrado"><option value="libre">Libre: ambas direcciones</option><option value="horizontal">Horizontal: mantener latitud</option></select></label>
+<nav><button id="centrarCamara">Ubicar cámara en el mapa</button><button id="descargarOffset">Descargar ajuste</button><button id="descargarGeojson">Descargar GeoJSON ajustado</button></nav>
+<p id="estadoCalibracion" class="note" role="status" aria-live="polite"></p></details>
 <div id="ayudaServidor" class="note" hidden><p>Para cargar las calles, serví este mapa desde la carpeta del proyecto:</p><pre>python -m mapeo.servidor_mapa</pre><p><a href="http://127.0.0.1:8765/mapa.html">Abrir mapa en localhost</a></p><p>El archivo local permite usar el plano y las evidencias, pero no solicita calles a OpenStreetMap.</p></div>
-<p class="note">Los grupos y árboles sin ubicación aparecen en la lista. El total confirmado excluye candidatos y grupos.</p>
+<p class="note">Las posiciones por caja usan supuestos de altura o distancia; no son mediciones. Los grupos violetas pueden contener varios árboles. El total confirmado excluye candidatos y grupos.</p>
 <input id="buscar" placeholder="Buscar ID, imagen o estado"><select id="periodo"><option value="all">Todas las fechas</option></select>
 <select id="tipo"><option value="all">Todos los registros</option><option value="tree">Árboles</option><option value="group">Grupos</option><option value="camera">Cámaras</option><option value="observation">Observaciones</option></select>
 <div id="lista" class="lista"></div><div id="detalle" class="detalle"></div>
 <div class="detalle"><b>Revisión local</b><p class="note">Las revisiones se descargan para aplicarlas al inventario. Este archivo no modifica la base de datos.</p>
 <textarea id="motivo" placeholder="Motivo y evidencia de la corrección"></textarea><button id="guardar">Descargar revisiones</button><div id="pendientes"></div></div>
 </aside></main>
+<dialog id="visorCamaras" aria-labelledby="fotoTitulo" aria-describedby="fotoAyuda">
+ <div class="foto-cabecera"><div><h2 id="fotoTitulo">Recorrido de cámaras</h2><p id="fotoAyuda">↑ Adelante · ↓ Atrás · ← Izquierda · → Derecha · Esc para volver al mapa</p></div><button id="fotoCerrar" aria-label="Cerrar visor de cámaras" autofocus>Cerrar ✕</button></div>
+ <div id="fotoEscena"><img id="fotoImagen" alt="Fotografía de la cámara seleccionada"><p id="fotoEstado" role="status" aria-live="polite" hidden></p></div>
+ <div class="foto-pie">
+  <div class="foto-navegacion"><nav id="fotoDirecciones" aria-label="Moverse entre cámaras según su ubicación"><button id="fotoAdelante" disabled>↑ Adelante</button><button id="fotoIzquierda" disabled>← Izquierda</button><button id="fotoDerecha" disabled>Derecha →</button><button id="fotoAtras" disabled>↓ Atrás</button></nav><p id="fotoDireccionEstado" role="status" aria-live="polite"></p></div>
+  <span id="fotoContador" role="status" aria-live="polite"></span>
+  <select id="fotoRecorrido" aria-label="Elegir recorrido y fecha"></select>
+  <details id="fotoOrden"><summary>Por orden de captura</summary><div><button id="fotoAnterior" aria-label="Foto anterior por fecha de captura">Foto anterior</button><button id="fotoSiguiente" aria-label="Foto siguiente por fecha de captura">Foto siguiente</button></div></details>
+  <div class="foto-zoom"><button id="fotoZoomMenos" aria-label="Reducir fotografía">−</button><span id="fotoZoomEstado">Ajustada</span><button id="fotoZoomMas" aria-label="Ampliar fotografía">+</button><button id="fotoAjustar">Ajustar</button></div>
+ </div>
+ <div class="foto-pie"><span id="fotoDescripcion"></span><a id="fotoMapillary" target="_blank" rel="noopener noreferrer">Ver en Mapillary</a><button id="fotoVolverMapa">Volver al mapa</button></div>
+</dialog>
+<dialog id="visorArboles" aria-labelledby="arbolTitulo" aria-describedby="arbolIdentidad">
+ <div class="foto-cabecera"><div><h2 id="arbolTitulo">Árbol</h2><p id="arbolIdentidad"></p></div><button id="arbolCerrar" aria-label="Cerrar imagen del árbol" autofocus>Cerrar ✕</button></div>
+ <div id="arbolEscena"><img id="arbolImagen" alt="Imagen de evidencia del árbol"><p id="arbolEstado" role="status" aria-live="polite" hidden></p></div>
+ <div class="foto-pie"><button id="arbolAnterior">← Vista anterior</button><span id="arbolContador" role="status" aria-live="polite"></span><button id="arbolSiguiente">Vista siguiente →</button>
+  <div class="foto-zoom"><button id="arbolZoomMenos" aria-label="Reducir imagen del árbol">−</button><span id="arbolZoomEstado">Ajustada</span><button id="arbolZoomMas" aria-label="Ampliar imagen del árbol">+</button><button id="arbolAjustar">Ajustar</button></div>
+ </div>
+ <div class="foto-pie"><span id="arbolDescripcion"></span><button id="arbolVerCamara">Ver foto completa de la cámara</button><button id="arbolVolverMapa">Volver al mapa</button></div>
+</dialog>
 <script id="datos" type="application/json">__DATOS__</script>
 <script>
 'use strict';
-const datos=JSON.parse(document.getElementById('datos').textContent),svg=document.getElementById('plano'),NS='http://www.w3.org/2000/svg';
-const todos=[...datos.trees,...datos.groups,...datos.cameras,...datos.observations],porId=new Map(todos.map(f=>[String(f.id),f]));
-const revisiones=[],counts=datos.counts;
+__CALIBRACION_JS__
+__RECORRIDO_JS__
+__EVIDENCIA_JS__
+const datosOriginales=JSON.parse(document.getElementById('datos').textContent),svg=document.getElementById('plano'),NS='http://www.w3.org/2000/svg';
+let datos=JSON.parse(JSON.stringify(datosOriginales)),todos=[],porId=new Map(),camaraSeleccionada=null,camaraParaCentrar=null,guiaCentrado=null,modoAlineacion='libre';
+function indexarDatos(){todos=[...datos.trees,...datos.groups,...datos.cameras,...datos.observations];porId=new Map(todos.map(f=>[String(f.id),f]));}
+indexarDatos();
+const revisiones=[],counts={...datos.counts,camaras:datos.cameras.length};
 function nodo(tag,texto,padre){const n=document.createElement(tag);if(texto!==undefined)n.textContent=texto;if(padre)padre.append(n);return n;}
 function s(tag,attrs,padre){const n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);if(padre)padre.append(n);return n;}
-for(const [titulo,k]of [['Confirmados','arboles_confirmados'],['Candidatos','candidatos_individuales'],['Grupos pendientes','grupos_no_resueltos'],['Observaciones','observaciones']])nodo('span',`${titulo}: ${counts[k]}`,document.getElementById('stats'));
+for(const [titulo,k]of [['Cámaras','camaras'],['Confirmados','arboles_confirmados'],['Candidatos','candidatos_individuales'],['Con punto en mapa','arboles_con_punto_mapa'],['Por aproximación','arboles_con_ubicacion_aproximada'],['Grupos pendientes','grupos_no_resueltos'],['Observaciones','observaciones']])nodo('span',`${titulo}: ${counts[k]??0}`,document.getElementById('stats'));
+if(datos.pipeline){const p=datos.pipeline,e=document.getElementById('estadoProcesamiento');e.hidden=false;e.textContent=p.stage==='complete'?`Detección terminada: ${p.images_processed}/${p.images_total} imágenes. Usá el filtro de fechas para comparar períodos.`:`Procesamiento pendiente o en curso: ${p.images_processed}/${p.images_total} imágenes con detecciones guardadas. Ya se pueden explorar las cámaras y sus fotos. Recargá para actualizar.`;}
+if(datos.related_maps?.length>1){const selector=document.getElementById('elegirRelevamiento');for(const m of datos.related_maps){const o=nodo('option',m.label||m.id,selector);o.value=m.url;if(m.id===datos.survey.id)o.selected=true;}document.getElementById('selectorMapas').hidden=false;selector.onchange=()=>{location.href=selector.value;};}
 document.getElementById('relevamiento').textContent=`Relevamiento: ${datos.survey.id}`;
 if(datos.survey.synthetic)document.getElementById('relevamiento').textContent+=' · ESCENA SINTÉTICA, no es un inventario real';
 function epoch(f){const p=f.properties;if(p.epoch)return String(p.epoch);return p.captured_at?String(new Date(p.captured_at).getUTCFullYear()):'unknown';}
 for(const e of [...new Set(todos.map(epoch))].sort()) {const o=nodo('option',e==='unknown'?'Fecha desconocida':e,document.getElementById('periodo'));o.value=e;}
-function visible(f){const e=document.getElementById('periodo').value;return e==='all'||epoch(f)===e;}
-function xy(f){const p=f.properties;return p.kind==='tree'?p.fit?.xy:p.kind==='camera'?p.xy:p.kind==='observation'?p.ray?.origin_xy:null;}
-function color(f){return f.properties.kind==='camera'?'#2674a6':f.properties.identity_status==='confirmed'?'#228148':f.properties.identity_status==='needs_review'?'#b64232':'#d18b16';}
+function visible(f){const e=document.getElementById('periodo').value;const p=f.properties;return (e==='all'||epoch(f)===e)&&!(['tree','group'].includes(p.kind)&&p.map_position?.is_approximate&&!document.getElementById('verAproximados').checked);}
+function posicionMapa(f){return f.properties.map_position||f.properties.fit;}
+function xy(f){const p=f.properties;return ['tree','group'].includes(p.kind)?posicionMapa(f)?.xy:p.kind==='camera'?p.xy:p.kind==='observation'?p.ray?.origin_xy:null;}
+const paletaArboles=['#e41a1c','#ff8c00','#c5a100','#35a853','#00a6a6','#6a3d9a','#e7298a','#8c564b','#525252','#00796b','#a6a000','#5e5ce6'];
+const coloresArboles=new Map(datosOriginales.trees.map(f=>String(f.id)).sort().map((id,i)=>[id,paletaArboles[i]||`hsl(${(i*137.508)%360},70%,40%)`]));
+function color(f){return f.properties.kind==='camera'?'#0072b2':f.properties.kind==='group'?'#b517e5':f.properties.kind==='tree'?(coloresArboles.get(String(f.id))||'#3b3b3b'):'#64748b';}
+function borde(f){return f.properties.kind!=='tree'?'#ffffff':f.properties.identity_status==='confirmed'?'#087f23':f.properties.identity_status==='needs_review'?'#b00020':'#b87000';}
+function estiloPunto(f){return {radius:8,color:borde(f),fillColor:color(f),weight:2.5,opacity:1,fillOpacity:1,dashArray:f.properties.map_position?.is_approximate?'4 2':null};}
+function marcador(f,latlng){
+ if(['camera','group'].includes(f.properties.kind)){
+  const seleccionada=f.properties.kind==='camera'&&String(f.id)===camaraSeleccionada;
+  return L.marker(latlng,{title:`${f.properties.kind==='camera'?'Cámara':'Grupo'} ${f.id}`,icon:L.divIcon({className:'map-marker',html:`<span class="map-symbol ${f.properties.kind}${seleccionada?' selected':''}" style="background:${color(f)}"></span>`,iconSize:[20,20],iconAnchor:[10,10]})});
+ }
+ return L.circleMarker(latlng,estiloPunto(f));
+}
 let limites=[-25,-25,50,50],vista,geo=null,capas=null;
+const clavePanel='agrotech:panel:v1';
+function mostrarPanel(mostrar,guardar=true){
+ const panel=document.getElementById('panelLateral'),boton=document.getElementById('alternarPanel');
+ panel.hidden=!mostrar;document.getElementById('contenidoMapa').classList.toggle('sin-panel',!mostrar);
+ boton.textContent=mostrar?'Ocultar panel derecho':'Mostrar panel derecho';boton.setAttribute('aria-expanded',String(mostrar));
+ if(guardar){try{if(typeof localStorage!=='undefined')localStorage.setItem(clavePanel,mostrar?'visible':'hidden');}catch(error){}}
+ if(geo)geo.invalidateSize({animate:false});
+}
+document.getElementById('alternarPanel').onclick=()=>mostrarPanel(document.getElementById('panelLateral').hidden);
+try{mostrarPanel(typeof localStorage==='undefined'||localStorage.getItem(clavePanel)!=='hidden',false);}catch(error){mostrarPanel(true,false);}
+const visorArboles=EvidenciaArboles.crear({obtenerObservaciones:()=>datos.observations,obtenerCamara:id=>porId.get(String(id)),abrirCamara:id=>visorCamaras.abrir(id)});
+const visorCamaras=RecorridoCamaras.crear({obtenerCamaras:()=>datos.cameras,obtenerOpciones:()=>datos.camera_navigation,onCambiar:f=>{
+ const periodo=document.getElementById('periodo');if(periodo.value!=='all'&&periodo.value!==epoch(f)){periodo.value=epoch(f);lista();}
+ detalle(f,false);centrarFoto(f);
+}});
+function centrarFoto(f){
+ const p=xy(f);if(p&&vista)vista=[p[0]-vista[2]/2,-p[1]-vista[3]/2,vista[2],vista[3]];
+ if(geo&&f.geometry?.type==='Point'){const [lon,lat]=f.geometry.coordinates;geo.panTo([lat,lon]);}
+ if(vista)dibujar();
+}
 let vistaElegida='geografica',cargaMapa=null,leafletCSS=false;
-function encuadre(){const puntos=[...datos.trees,...datos.cameras].filter(visible).map(xy).filter(Boolean);if(puntos.length){const xs=puntos.map(p=>p[0]),ys=puntos.map(p=>-p[1]);let x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y;const lado=Math.max(w,h,40),pad=lado*.15;limites=[x-pad,y-pad,Math.max(w,40)+2*pad,Math.max(h,40)+2*pad];}vista=[...limites];dibujar();if(geo){const puntosGeo=puntosGeograficos();if(puntosGeo.length)geo.fitBounds(puntosGeo,{padding:[30,30],maxZoom:19});}}
+function encuadre(){const puntos=[...datos.trees,...datos.groups,...datos.cameras].filter(visible).map(xy).filter(Boolean);if(puntos.length){const xs=puntos.map(p=>p[0]),ys=puntos.map(p=>-p[1]);let x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y;const lado=Math.max(w,h,40),pad=lado*.15;limites=[x-pad,y-pad,Math.max(w,40)+2*pad,Math.max(h,40)+2*pad];}vista=[...limites];dibujar();if(geo){const puntosGeo=puntosGeograficos();if(puntosGeo.length)geo.fitBounds(puntosGeo,{padding:[30,30],maxZoom:19});}}
 function dibujar(){svg.replaceChildren();svg.setAttribute('viewBox',vista.join(' '));
  const paso=Math.pow(10,Math.floor(Math.log10(Math.max(vista[2],vista[3])/5)));const grid=s('g',{stroke:'#cfd9cd','stroke-width':'.15'},svg);
  for(let x=Math.floor(vista[0]/paso)*paso;x<vista[0]+vista[2];x+=paso)s('line',{x1:x,y1:vista[1],x2:x,y2:vista[1]+vista[3]},grid);
@@ -50,27 +141,140 @@ function dibujar(){svg.replaceChildren();svg.setAttribute('viewBox',vista.join('
  const escala=Math.max(vista[2],vista[3])/220;
  const etiqueta=s('text',{x:vista[0]+escala*3,y:vista[1]+escala*7,'font-size':escala*3,fill:'#526653'},svg);etiqueta.textContent=`Grilla: ${paso} m · norte ↑`;
  if(document.getElementById('verRayos').checked)for(const f of datos.observations.filter(visible)){const r=f.properties.ray;if(!r?.valid)continue;const p=r.origin_xy,d=r.direction,len=f.properties.ray_display_length_m;s('line',{x1:p[0],y1:-p[1],x2:p[0]+d[0]*len,y2:-p[1]-d[1]*len,stroke:'#849c89','stroke-width':escala*.4,opacity:'.7'},svg).onclick=()=>detalle(f);}
- if(document.getElementById('verCamaras').checked)for(const f of datos.cameras.filter(visible)){const p=xy(f);if(p)s('rect',{x:p[0]-escala,y:-p[1]-escala,width:escala*2,height:escala*2,fill:'#2674a6'},svg).onclick=()=>detalle(f);}
- for(const f of datos.trees.filter(visible)){const p=xy(f);if(!p)continue;const radio=f.properties.fit?.uncertainty_m;if(radio&&document.getElementById('verIncertidumbre').checked)s('circle',{cx:p[0],cy:-p[1],r:radio,fill:'none',stroke:color(f),'stroke-width':escala*.3,'stroke-dasharray':`${escala} ${escala}`},svg);const c=s('circle',{cx:p[0],cy:-p[1],r:escala*1.5,fill:color(f),stroke:'white','stroke-width':escala*.35},svg);c.onclick=()=>detalle(f);}
+ if(document.getElementById('verCamaras').checked)for(const f of datos.cameras.filter(visible)){const p=xy(f);if(p)s('rect',{x:p[0]-escala,y:-p[1]-escala,width:escala*2,height:escala*2,fill:color(f),stroke:String(f.id)===camaraSeleccionada?'#ffdb68':'white','stroke-width':escala*(String(f.id)===camaraSeleccionada ? .9 : .4)},svg).onclick=()=>detalle(f);}
+ for(const f of [...datos.trees,...datos.groups].filter(visible)){
+  const p=xy(f);if(!p)continue;const radio=posicionMapa(f)?.uncertainty_m;
+  if(radio&&document.getElementById('verIncertidumbre').checked)s('circle',{cx:p[0],cy:-p[1],r:radio,fill:'none',stroke:color(f),'stroke-width':escala*.2,opacity:.3,'stroke-dasharray':`${escala} ${escala}`},svg);
+  const r=escala*2,atributos={fill:color(f),stroke:borde(f),'stroke-width':escala*.7,'stroke-dasharray':f.properties.map_position?.is_approximate?`${escala} ${escala*.5}`:'none'};
+  const c=f.properties.kind==='group'?s('path',{...atributos,d:`M ${p[0]} ${-p[1]-r} L ${p[0]+r} ${-p[1]} L ${p[0]} ${-p[1]+r} L ${p[0]-r} ${-p[1]} Z`},svg):s('circle',{...atributos,cx:p[0],cy:-p[1],r},svg);c.onclick=()=>detalle(f);
+ }
  renderGeo();}
 function zoom(f){if(geo&&vistaElegida==='geografica'){if(f<1)geo.zoomIn();else geo.zoomOut();return;}const [x,y,w,h]=vista;if(Math.max(w,h)*f>1e6||Math.min(w,h)*f<.1)return;vista=[x+w*(1-f)/2,y+h*(1-f)/2,w*f,h*f];dibujar();}document.getElementById('mas').onclick=()=>zoom(.75);document.getElementById('menos').onclick=()=>zoom(1.3);document.getElementById('encuadrar').onclick=encuadre;
 svg.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY>0?1.15:.87);},{passive:false});let arrastre=null;svg.onpointerdown=e=>{if(e.target!==svg&&typeof e.target.onclick==='function')return;arrastre=[e.clientX,e.clientY,...vista];svg.setPointerCapture(e.pointerId);};svg.onpointermove=e=>{if(!arrastre)return;const r=svg.getBoundingClientRect(),esc=Math.max(arrastre[4]/r.width,arrastre[5]/r.height);vista=[arrastre[2]-(e.clientX-arrastre[0])*esc,arrastre[3]-(e.clientY-arrastre[1])*esc,arrastre[4],arrastre[5]];dibujar();};svg.onpointerup=()=>{arrastre=null;};svg.onpointercancel=()=>{arrastre=null;};
-function lista(){const cont=document.getElementById('lista');cont.replaceChildren();const q=document.getElementById('buscar').value.toLowerCase(),tipo=document.getElementById('tipo').value;for(const f of todos.filter(f=>visible(f)&&(tipo==='all'||f.properties.kind===tipo)&&JSON.stringify([f.id,f.properties.image_id,f.properties.identity_status,f.properties.status]).toLowerCase().includes(q))){const p=f.properties;const b=nodo('button',`${p.kind} · ${String(f.id).slice(0,12)} · ${p.identity_status||p.status||p.role||''}`,cont);b.className='registro';b.onclick=()=>detalle(f);}}
+function lista(){const cont=document.getElementById('lista');cont.replaceChildren();const q=document.getElementById('buscar').value.toLowerCase(),tipo=document.getElementById('tipo').value;for(const f of todos.filter(f=>visible(f)&&(tipo==='all'||f.properties.kind===tipo)&&JSON.stringify([f.id,f.properties.image_id,f.properties.identity_status,f.properties.status]).toLowerCase().includes(q))){const p=f.properties;const b=nodo('button',`${p.kind} · ${String(f.id).slice(0,12)} · ${p.identity_status||p.status||p.role||''}`,cont);b.className='registro';nodo('span',' ●',b).style.color=color(f);b.onclick=()=>detalle(f);}}
 function encolar(accion){const motivo=document.getElementById('motivo').value.trim();if(!motivo){alert('Escribí el motivo de la corrección.');return;}accion.reason=motivo;const indice=revisiones.findIndex(a=>a.type===accion.type&&a.target===accion.target);if(indice>=0)revisiones[indice]=accion;else revisiones.push(accion);document.getElementById('pendientes').textContent=`Revisiones pendientes de descargar: ${revisiones.length}`;}
-function detalle(f){const d=document.getElementById('detalle');d.replaceChildren();const p=f.properties;nodo('h3',p.kind,d);nodo('div',String(f.id),d).className='coords';nodo('p',p.identity_status||p.status||p.role||'',d);if(f.geometry?.type==='Point')nodo('p',`Lon/lat: ${f.geometry.coordinates.map(x=>x.toFixed(7)).join(', ')}`,d);if(p.review_reason||p.reason)nodo('p',p.review_reason||p.reason,d);if(p.fit)nodo('p',`Posición: ${p.fit.method}; incertidumbre heurística: ${p.fit.uncertainty_m==null?'no medida':p.fit.uncertainty_m.toFixed(1)+' m'}`,d);
+function detalle(f,abrirFoto=true){const d=document.getElementById('detalle');d.replaceChildren();const p=f.properties;nodo('h3',p.kind,d);nodo('div',String(f.id),d).className='coords';nodo('p',p.identity_status||p.status||p.role||'',d);if(f.geometry?.type==='Point')nodo('p',`Lon/lat: ${f.geometry.coordinates.map(x=>x.toFixed(7)).join(', ')}`,d);if(p.review_reason||p.reason)nodo('p',p.review_reason||p.reason,d);mostrarPosicion(f,d);
+ if(p.kind==='camera'){camaraSeleccionada=String(f.id);nodo('button','Ubicar esta cámara en el mapa',d).onclick=()=>activarCentrado(String(f.id));}
+ if(p.kind==='camera'&&p.photo){const img=nodo('img',undefined,d);img.src=p.photo.url||p.photo.full_url;img.alt=`Captura Mapillary ${p.image_id||f.id}`;img.className='foto-miniatura';img.onclick=()=>visorCamaras.abrir(f.id);nodo('button','Abrir fotografía grande',d).onclick=()=>visorCamaras.abrir(f.id);if(p.photo.annotated)nodo('p',`DINO: ${p.photo.detections} detecciones. La fotografía incluye las cajas.`,d);if(p.captured_at)nodo('p',`Fecha: ${new Date(p.captured_at).toLocaleDateString('es-AR')}`,d);}
  if(p.view_url){const a=nodo('a','Ver captura en Mapillary',d);a.href=p.view_url;a.target='_blank';a.rel='noopener noreferrer';}
  if(p.creator)nodo('p',`Autor: ${p.creator.username||p.creator.id||''} · Mapillary`,d);
  if(p.kind==='tree'){nodo('button','Confirmar identidad',d).onclick=()=>encolar({type:'confirm',target:String(f.id)});nodo('button','Rechazar',d).onclick=()=>encolar({type:'reject',target:String(f.id)});}
  if(p.kind==='observation'){nodo('p',`Imagen: ${p.image_id}; caja: ${p.bbox_xyxy.map(x=>x.toFixed(1)).join(', ')}; score: ${p.score.toFixed(3)}`,d);if(!p.ray?.valid)nodo('p',p.ray?.reason||'Sin geometría',d);if(p.evidence){const img=nodo('img',undefined,d);img.src=p.evidence.url;img.alt='Recorte de la observación';const ayuda=nodo('p','Para marcar un punto consistente del tronco, escribí el motivo y hacé clic sobre el recorte.',d);ayuda.className='note';img.onclick=e=>{const r=img.getBoundingClientRect(),c=p.evidence.crop_box;const pixel=[c[0]+(e.clientX-r.left)/r.width*(c[2]-c[0]),c[1]+(e.clientY-r.top)/r.height*(c[3]-c[1])];encolar({type:'set_anchor',target:String(f.id),anchor:{pixel}});};}}
  for(const id of p.observation_ids||[]){const otro=porId.get(String(id));if(otro)nodo('button',`Ver observación ${String(id).slice(0,8)}`,d).onclick=()=>detalle(otro);}
- for(const id of p.member_ids||[]){const otro=porId.get(String(id));if(otro)nodo('button',`Ver individuo ${String(id).slice(0,8)}`,d).onclick=()=>detalle(otro);}}
+ for(const id of p.member_ids||[]){const otro=porId.get(String(id));if(otro)nodo('button',`Ver individuo ${String(id).slice(0,8)}`,d).onclick=()=>detalle(otro);}
+ if(abrirFoto&&p.kind==='camera'){visorArboles.cerrar();visorCamaras.abrir(f.id);}
+ if(abrirFoto&&p.kind==='tree'){visorCamaras.cerrar();visorArboles.abrir(f);}}
 document.getElementById('guardar').onclick=()=>{if(!revisiones.length){alert('No hay revisiones pendientes.');return;}const blob=new Blob([JSON.stringify({actions:revisiones},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=nodo('a');a.href=url;a.download='correcciones.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-for(const id of ['verCamaras','verRayos','verIncertidumbre'])document.getElementById(id).onchange=dibujar;document.getElementById('buscar').oninput=lista;document.getElementById('tipo').onchange=lista;document.getElementById('periodo').onchange=()=>{lista();encuadre();};
-function renderGeo(){if(!geo)return;capas.clearLayers();const muestra=[...datos.trees,...(document.getElementById('verCamaras').checked?datos.cameras:[]),...(document.getElementById('verRayos').checked?datos.observations:[])].filter(f=>visible(f)&&f.geometry);for(const f of muestra){const capa=L.geoJSON(f,{style:{color:'#849c89',weight:1},pointToLayer:(_,latlng)=>L.circleMarker(latlng,{radius:6,color:color(f),fillOpacity:.9})}).addTo(capas);capa.on('click',()=>detalle(f));if(f.properties.kind==='tree'&&f.properties.fit?.uncertainty_m&&document.getElementById('verIncertidumbre').checked)L.circle([f.geometry.coordinates[1],f.geometry.coordinates[0]],{radius:f.properties.fit.uncertainty_m,color:color(f),weight:1,fillOpacity:0}).addTo(capas);}}
+for(const id of ['verCamaras','verRayos','verIncertidumbre'])document.getElementById(id).onchange=dibujar;document.getElementById('verAproximados').onchange=()=>{lista();dibujar();};document.getElementById('buscar').oninput=lista;document.getElementById('tipo').onchange=lista;document.getElementById('periodo').onchange=()=>{lista();encuadre();};
+function renderGeo(){
+ if(!geo)return;capas.clearLayers();
+ const muestra=[...(document.getElementById('verRayos').checked?datos.observations:[]),...datos.trees,...datos.groups,...(document.getElementById('verCamaras').checked?datos.cameras:[])].filter(f=>visible(f)&&f.geometry);
+ // Dibujar primero la incertidumbre para que los marcadores queden por encima.
+ for(const f of muestra)if(['tree','group'].includes(f.properties.kind)&&posicionMapa(f)?.uncertainty_m&&document.getElementById('verIncertidumbre').checked)L.circle([f.geometry.coordinates[1],f.geometry.coordinates[0]],{radius:posicionMapa(f).uncertainty_m,color:color(f),weight:1,opacity:.3,fillOpacity:0,interactive:false}).addTo(capas);
+ for(const f of muestra){
+  const capa=L.geoJSON(f,{style:feature=>feature.geometry?.type==='Point'?estiloPunto(feature):{color:'#64748b',weight:1.5,opacity:.5},pointToLayer:(feature,latlng)=>marcador(feature,latlng)}).addTo(capas);
+  capa.on('click',()=>detalle(f));
+ }
+}
+
+function mostrarPosicion(f,d){
+ const p=f.properties,pos=posicionMapa(f);if(!pos)return;
+ if(p.visual_tracking)nodo('p',`Seguimiento visual básico: ${p.visual_tracking.images} imágenes asociadas. Identidad pendiente de revisión.`,d);
+ const nombres={robust_bearing_intersection:'Triangulación entre cámaras',approximate_bearing_triangulation:'Triangulación aproximada de cajas',bbox_ground_plane:'Proyección del pie de caja sobre un suelo plano',bbox_assumed_tree_height:'Distancia por tamaño aparente del árbol',assumed_distance_along_ray:'Distancia supuesta en la dirección de la caja',manual_review:'Ubicación revisada manualmente'};
+ nodo('p',`Ubicación: ${nombres[pos.method]||pos.method}${pos.is_approximate?' · APROXIMADA':''}`,d);
+ nodo('p',`Incertidumbre heurística: ${pos.uncertainty_m==null?'no medida':pos.uncertainty_m.toFixed(1)+' m'}`,d);
+ const a=pos.assumptions||{};
+ if(a.camera_height_is_assumed)nodo('p',`Supone cámara a ${a.camera_height_m} m, suelo plano y pie de caja en la base del tronco.`,d);
+ if(a.tree_height_is_assumed)nodo('p',`Supone un árbol de ${a.tree_height_m} m de altura y una caja que lo contiene completo.`,d);
+ if(a.distance_is_assumed)nodo('p',`Se supuso una distancia de ${a.distance_m} m; no es una distancia medida.`,d);
+ if(pos.warnings?.includes('distance_clamped_to_configured_range'))nodo('p','Distancia limitada al rango configurado; requiere revisión.',d);
+ const limite=pos.lateral_constraint;
+ if(limite?.applied)nodo('p',`Ajuste lateral: ${Math.abs(limite.lateral_before_m).toFixed(1)} → ${Math.abs(limite.lateral_after_m).toFixed(1)} m respecto al avance de la cámara (máximo ${limite.max_distance_m} m). Se conservó la dirección de observación.`,d);
+ if(limite?.axis?.source==='camera_heading_assumed_travel_direction')nodo('p','La referencia lateral usa el rumbo de la cámara como dirección de avance supuesta.',d);
+ if(p.kind==='group')nodo('p','Este punto representa un grupo pendiente, no un árbol individual adicional.',d);
+ if(['tree','group'].includes(p.kind)){
+  const oid=pos.source_observation_ids?.[0]||p.observation_ids?.[0],obs=porId.get(String(oid));
+  if(obs?.properties.evidence){const img=nodo('img',undefined,d);img.src=obs.properties.evidence.url;img.alt='Caja de detección que respalda esta ubicación';if(p.kind==='tree'){img.className='foto-miniatura';img.onclick=()=>visorArboles.abrir(f);}nodo('p',`Evidencia de la imagen ${obs.properties.image_id}`,d);}
+ }
+}
+
+const offsetBase=CalibracionMapa.offsets(datosOriginales),giroBase=CalibracionMapa.parametros(datosOriginales);
+const claveCalibracion=`agrotech:calibration:v2:${datosOriginales.survey.id}:${JSON.stringify(datosOriginales.survey.origin)}`;
+function estadoCalibracion(texto){document.getElementById('estadoCalibracion').textContent=texto;}
+function aplicarAjuste(este,norte,guardar=true,rotacion=undefined,pivote=undefined){
+ try{
+  if([este,norte].some(v=>typeof v==='string'&&!v.trim()))throw new Error('Ingresá ambos desplazamientos en metros.');
+  const e=Number(este),n=Number(norte),previo=CalibracionMapa.parametros(datos);
+  if(rotacion!==undefined&&typeof rotacion==='string'&&!rotacion.trim())throw new Error('Ingresá una rotación en grados.');
+  const r=rotacion===undefined?previo.rotation_deg:Number(rotacion),id=pivote===undefined?(previo.pivot_camera_id||document.getElementById('pivoteRotacion').value||undefined):(pivote||undefined);
+  datos=CalibracionMapa.aplicar(datosOriginales,e,n,r,id);indexarDatos();
+  const c=CalibracionMapa.parametros(datos);document.getElementById('rotacionGrados').value=String(c.rotation_deg);
+  if(c.pivot_camera_id)document.getElementById('pivoteRotacion').value=String(c.pivot_camera_id);
+  document.getElementById('offsetEste').value=String(e);document.getElementById('offsetNorte').value=String(n);
+  if(guardar){try{if(typeof localStorage!=='undefined')localStorage.setItem(claveCalibracion,JSON.stringify({offset_east_m:e,offset_north_m:n,rotation_deg:c.rotation_deg,pivot_camera_id:c.pivot_camera_id??null}));}catch(error){}}
+  estadoCalibracion(`Este/oeste: ${e.toFixed(2)} m · Norte/sur: ${n.toFixed(2)} m · Giro: ${c.rotation_deg.toFixed(2)}°. Todos los registros se mueven juntos. Descargá el ajuste para reutilizarlo.`);
+  document.getElementById('detalle').replaceChildren();lista();encuadre();return true;
+ }catch(error){estadoCalibracion(error.message);return false;}
+}
+// Compatibilidad con los controles y ajustes de la versión horizontal.
+function aplicarOffset(valor,guardar=true){return aplicarAjuste(valor,CalibracionMapa.offsets(datos).north,guardar);}
+function descargarJSON(contenido,nombre){
+ const blob=new Blob([JSON.stringify(contenido,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=nodo('a');
+ a.href=url;a.download=nombre;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function cancelarCentrado(){camaraParaCentrar=null;if(guiaCentrado){guiaCentrado.remove();guiaCentrado=null;}}
+function activarCentrado(id){
+ const camara=porId.get(String(id));
+ if(!geo||vistaElegida!=='geografica'){estadoCalibracion('Abrí «Mapa de la ciudad» para elegir la posición de la cámara.');return;}
+ if(camara?.properties.kind!=='camera'||camara.geometry?.type!=='Point'){estadoCalibracion('Seleccioná una cámara con ubicación.');return;}
+ cancelarCentrado();modoAlineacion=document.getElementById('modoCentrado').value||'libre';
+ if(modoAlineacion==='horizontal'){
+  const [lon,lat]=camara.geometry.coordinates,b=geo.getBounds();
+  guiaCentrado=L.polyline([[lat,b.getWest()],[lat,b.getEast()]],{color:'#0072b2',dashArray:'6 5',weight:2,interactive:false}).addTo(geo);
+ }
+ camaraParaCentrar=String(id);estadoCalibracion(modoAlineacion==='horizontal'?`Cámara ${id}: hacé clic donde la línea azul cruza el centro de la calle. Se conserva la latitud.`:`Cámara ${id}: hacé clic en su nueva posición. Se moverá todo el conjunto en ambas direcciones.`);
+}
+function centrarConClic(evento){
+ if(!camaraParaCentrar)return;
+ const camara=porId.get(camaraParaCentrar),lat=CalibracionMapa.latitud(datosOriginales),actual=CalibracionMapa.offsets(datos);
+ const este=(evento.latlng.lng-camara.geometry.coordinates[0])*Math.PI/180*CalibracionMapa.metrosPorRadian(lat);
+ const norte=modoAlineacion==='horizontal'?0:(evento.latlng.lat-camara.geometry.coordinates[1])*Math.PI/180*CalibracionMapa.metrosPorRadianLatitud(lat);
+ cancelarCentrado();aplicarAjuste(actual.east+este,actual.north+norte);
+}
+function moverPaso(este,norte){
+ const paso=Number(document.getElementById('pasoOffset').value),actual=CalibracionMapa.offsets(datos);
+ if(!Number.isFinite(paso)||paso<=0){estadoCalibracion('El paso debe ser un número positivo en metros.');return;}
+ cancelarCentrado();aplicarAjuste(actual.east+este*paso,actual.north+norte*paso);
+}
+document.getElementById('aplicarOffset').onclick=()=>{cancelarCentrado();aplicarAjuste(document.getElementById('offsetEste').value,document.getElementById('offsetNorte').value,true,document.getElementById('rotacionGrados').value);};
+document.getElementById('offsetMas').onclick=()=>moverPaso(1,0);
+document.getElementById('offsetMenos').onclick=()=>moverPaso(-1,0);
+document.getElementById('offsetNorteMas').onclick=()=>moverPaso(0,1);
+document.getElementById('offsetNorteMenos').onclick=()=>moverPaso(0,-1);
+document.getElementById('restaurarOffset').onclick=()=>{cancelarCentrado();aplicarAjuste(0,0,true,0);};
+document.getElementById('restaurarArchivo').onclick=()=>{cancelarCentrado();aplicarAjuste(offsetBase.east,offsetBase.north,true,giroBase.rotation_deg,giroBase.pivot_camera_id);};
+document.getElementById('centrarCamara').onclick=()=>activarCentrado(camaraSeleccionada||datos.cameras.find(f=>f.geometry?.type==='Point')?.id);
+document.getElementById('descargarOffset').onclick=()=>{const c=CalibracionMapa.offsets(datos),r=CalibracionMapa.parametros(datos);descargarJSON({schema_version:3,survey_id:datos.survey.id,offset_east_m:c.east,offset_north_m:c.north,rotation_deg:r.rotation_deg,pivot_camera_id:r.pivot_camera_id??null,method:'rigid_rotation_translation'},'calibracion_mapa.json');};
+document.getElementById('descargarGeojson').onclick=()=>descargarJSON({type:'FeatureCollection',map_calibration:datos.map_calibration||datos.horizontal_calibration||{offset_east_m:0,offset_north_m:0},features:[...datos.trees,...datos.cameras,...datos.groups,...datos.observations]},'relevamiento_ajustado.geojson');
+
+function girarPaso(signo){
+ const paso=Number(document.getElementById('pasoGiro').value),c=CalibracionMapa.offsets(datos),r=CalibracionMapa.parametros(datos);
+ if(!Number.isFinite(paso)||paso<=0){estadoCalibracion('El paso de giro debe ser positivo.');return;}
+ cancelarCentrado();aplicarAjuste(c.east,c.north,true,r.rotation_deg+signo*paso);
+}
+function cambiarCentro(id){
+ try{cancelarCentrado();const copia=CalibracionMapa.cambiarPivote(datos,id),c=CalibracionMapa.offsets(copia),r=CalibracionMapa.parametros(copia);aplicarAjuste(c.east,c.north,true,r.rotation_deg,id);}
+ catch(error){estadoCalibracion(error.message);}
+}
+document.getElementById('rotarDerecha').onclick=()=>girarPaso(1);
+document.getElementById('rotarIzquierda').onclick=()=>girarPaso(-1);
+document.getElementById('sinGiro').onclick=()=>{const c=CalibracionMapa.offsets(datos);aplicarAjuste(c.east,c.north,true,0);};
+document.getElementById('pivoteRotacion').onchange=()=>cambiarCentro(document.getElementById('pivoteRotacion').value);
+document.getElementById('pivoteSeleccionado').onclick=()=>{if(camaraSeleccionada)cambiarCentro(camaraSeleccionada);else estadoCalibracion('Seleccioná una cámara azul para usarla como centro del giro.');};
 
 // Este visor solo consume datos: no detecta, asocia ni modifica árboles.
 function puntosGeograficos(){
- return [...datos.trees,...datos.cameras].filter(f=>visible(f)&&f.geometry?.type==='Point')
+ return [...datos.trees,...datos.groups,...datos.cameras].filter(f=>visible(f)&&f.geometry?.type==='Point')
   .map(f=>f.geometry.coordinates).filter(p=>p.length>=2&&Number.isFinite(p[0])&&Number.isFinite(p[1]))
   .map(p=>[p[1],p[0]]);
 }
@@ -121,7 +325,7 @@ async function cargarMapa(){
    await cargarLeaflet();
    // Dar tamaño al contenedor antes de que Leaflet calcule sus límites.
    svg.style.display='none';document.getElementById('geografico').style.display='block';
-   geo=L.map('geografico').setView(centro,17);capas=L.layerGroup().addTo(geo);
+   geo=L.map('geografico').setView(centro,17);geo.on('click',centrarConClic);capas=L.layerGroup().addTo(geo);
    let cargadas=0,fallidas=0;
    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
     maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -141,5 +345,23 @@ async function cargarMapa(){
 }
 document.getElementById('local').onclick=mostrarLocal;
 document.getElementById('base').onclick=cargarMapa;
-lista();encuadre();cargarMapa();
+let offsetInicial={...offsetBase,rotation_deg:giroBase.rotation_deg,pivot_camera_id:giroBase.pivot_camera_id};
+try{
+ if(typeof localStorage!=='undefined'){
+  const guardado=localStorage.getItem(claveCalibracion);
+  if(guardado!==null){const c=JSON.parse(guardado);if(Number.isFinite(c.offset_east_m)&&Number.isFinite(c.offset_north_m))offsetInicial={east:c.offset_east_m,north:c.offset_north_m,rotation_deg:Number.isFinite(c.rotation_deg)?c.rotation_deg:0,pivot_camera_id:c.pivot_camera_id};}
+  else{
+   for(const base of [...new Set([offsetBase.east,0])]){
+    const anterior=localStorage.getItem(`agrotech:horizontal:v1:${datosOriginales.survey.id}:${JSON.stringify(datosOriginales.survey.origin)}:${base}`);
+    if(anterior!==null&&Number.isFinite(Number(anterior))){offsetInicial={...offsetInicial,east:Number(anterior),north:offsetBase.north};break;}
+   }
+  }
+ }
+}catch(error){}
+const opcionesPivote=document.getElementById('pivoteRotacion');
+for(const f of datosOriginales.cameras.filter(f=>f.geometry?.type==='Point')){const opcion=nodo('option',`Cámara ${f.id}`,opcionesPivote);opcion.value=String(f.id);}
+if(!opcionesPivote.children.length){const opcion=nodo('option','Origen del relevamiento',opcionesPivote);opcion.value='';}
+opcionesPivote.value=offsetInicial.pivot_camera_id||opcionesPivote.children[0].value;
+document.getElementById('pasoOffset').value='1';document.getElementById('pasoGiro').value='0.5';
+aplicarAjuste(offsetInicial.east,offsetInicial.north,false,offsetInicial.rotation_deg,opcionesPivote.value);cargarMapa();
 </script></html>

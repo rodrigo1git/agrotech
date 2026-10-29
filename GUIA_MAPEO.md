@@ -25,11 +25,18 @@ estándar; la vista de calles se carga opcionalmente con Leaflet/OpenStreetMap.
 
 ### Resultado real disponible
 
-La captura `870050853581010` es de 2018. Hay una única imagen disponible:
-el mapa muestra su cámara y permite revisar cinco observaciones, tres
-candidatos individuales y dos grupos pendientes. No hay suficientes puntos
-de vista para localizar y confirmar los árboles. `arboles.geojson` queda vacío
-hasta que existan posiciones justificables. Eso no significa que no haya árboles.
+Este apartado describe la prueba inicial de tres capturas. La descarga y el
+procesamiento de la manzana completa se explican en
+[GUIA_MANZANA_TANDIL.md](GUIA_MANZANA_TANDIL.md). El servidor abre esa manzana
+por defecto cuando existe y permite volver a la prueba inicial desde el selector.
+
+Las tres capturas seleccionadas son de 2018 y aportan 13 observaciones.
+El inventario contiene nueve candidatos individuales y dos grupos pendientes.
+Dos candidatos tienen triangulación y los otros siete tienen posiciones
+exploratorias calculadas a partir de la cámara y la caja. Los dos grupos también
+tienen un punto representativo aproximado. No hay identidades confirmadas.
+La ubicación aproximada permite revisar el mapa sin convertir una detección
+en un árbol único confirmado. Ver [GUIA_UBICACION_APROXIMADA.md](GUIA_UBICACION_APROXIMADA.md).
 
 Mapa generado:
 `resultados/mapeo/exportaciones/tandil2018/mapa.html`.
@@ -113,16 +120,20 @@ resultados/mapeo/
   el archivo principal ignorando sus archivos WAL.
 - **`inventario.json`:** snapshot del relevamiento, registros activos e históricos,
   estados, observaciones y decisiones con evidencia. Incluye individuos sin ubicación.
+  `map_positions` contiene las posiciones exploratorias derivadas para el mapa;
+  no reemplaza el ajuste geométrico `fit` del inventario.
 - **`arboles.geojson`:** individuos activos con coordenadas estimadas. Sus estados
   distinguen confirmados, candidatos y posiciones que necesitan revisión.
 - **`camaras.geojson`:** ubicaciones de captura, no posiciones de árboles.
 - **`observaciones.geojson`:** direcciones desde las cámaras; su longitud dibujada
   es configurable y no es una medición de distancia al árbol. Geometría nula
   cuando faltan datos de cámara.
-- **`grupos.geojson`:** grupos y alternativas sin resolver; normalmente geometría
-  nula. No se crea un punto arbitrario en el centro de un grupo.
+- **`grupos.geojson`:** grupos y alternativas; los pendientes pueden tener un
+  punto representativo aproximado, etiquetado como grupo y con sus supuestos.
+  No suma un árbol individual ni se vuelve a ubicar un grupo ya resuelto.
 - **`estadisticas.json`:** conteos separados de confirmados, candidatos, grupos,
   duplicados probables y observaciones sin geometría.
+  También separa árboles con punto en el mapa, aproximados y sin punto.
 - **`errores.json`:** datasets incompletos o inválidos. Una salida parcial con
   errores termina con código distinto de cero.
 - **`evidencia/`:** recortes para revisar las observaciones sin alterar los originales.
